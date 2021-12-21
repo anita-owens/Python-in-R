@@ -1,0 +1,182 @@
+---
+title: "Python in R"
+output: html_notebook
+---
+
+
+
+
+## 1. Set up Environment
+
+```{r Load R packages}
+# Install pacman if needed
+if (!require("pacman")) install.packages("pacman")
+
+# load packages
+pacman::p_load(pacman,
+reticulate)
+```
+
+
+```{r Python Environment check}
+#Check Anaconda environments
+conda_list()[[1]]
+```
+```{r Declare environment}
+#Declare environment that you want to use
+use_condaenv("anaconda3")
+```
+
+## 2.Install Packages
+
+https://rstudio.github.io/reticulate/reference/py_install.html
+
+```{r Install Packages}
+#use py_install to install packages needed
+py_install(c("pandas", "numpy", "matplotlib", "seaborn", "scikit-learn"))
+```
+
+
+
+```{python Import python packages related to working directory}
+#import python packages
+from os import chdir, getcwd
+wd=getcwd()
+chdir(wd)
+
+print(wd) #prints the current working directory
+```
+
+
+
+```{python Import python packages for data analysis and machine learning}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt 
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+```
+
+## 3. Import data
+
+```{python Import csv file}
+#Import csv file as pandas dataframe
+credit = pd.read_csv("datasets/credit.csv")
+```
+
+```{python Check results of import}
+#Check results of the import
+print(credit.head(5))
+```
+
+
+
+```{python Check column data types and non-missing values}
+# Check column data types and non-missing values
+print(credit.info())
+```
+
+
+## 4. Data Exploration
+
+```{python Data Visualization - part 1}
+#Initialize subplots with number of rows and number of columns
+figure, ax = plt.subplots(nrows = 2, ncols = 2, figsize=(10,4))
+
+#See the distribution of the data
+sns.histplot(data=credit, x = 'Income', ax=ax[0,0])
+sns.histplot(data=credit, x = 'Limit', ax=ax[0,1])
+sns.histplot(data=credit, x = 'Rating',ax=ax[1,0])
+sns.histplot(data=credit, x = 'Cards', ax=ax[1,1])
+
+plt.show()
+```
+
+```{python Data Visualization - part 2}
+#Initialize subplots with number of rows and number of columns
+figure, ax = plt.subplots(nrows = 3, ncols = 2, figsize=(10,4))
+
+#See the distribution of the data
+sns.histplot(data=credit, x = 'Age', ax=ax[0,0])
+sns.histplot(data=credit, x = 'Education', ax=ax[0,1])
+sns.countplot(data=credit, x = 'Gender',ax=ax[1,0])
+sns.countplot(data=credit, x = 'Student', ax=ax[1,1])
+sns.countplot(data=credit, x = 'Married', ax=ax[2,0])
+sns.countplot(data=credit, x = 'Ethnicity', ax=ax[2,1])
+
+plt.show()
+```
+
+```{python Data Visualization - part 3}
+#Initialize subplots with number of rows and number of columns
+figure, ax = plt.subplots(nrows = 2, ncols = 2, figsize=(10,4))
+
+#See the distribution of the data
+sns.boxplot(data=credit, x = 'Gender', y = 'Balance', ax=ax[0,0])
+sns.boxplot(data=credit, x = 'Student',y = 'Balance', ax=ax[0,1])
+sns.boxplot(data=credit, x = 'Married', y = 'Balance',ax=ax[1,0])
+sns.boxplot(data=credit, x = 'Ethnicity',y = 'Balance', ax=ax[1,1])
+
+plt.show()
+```
+
+
+
+```{python Pairplot}
+#Plot pairwise relationships
+sns.pairplot(credit)
+
+plt.show()
+```
+## 5. Data model
+
+
+```{python Prepare numeric data for modeling}
+##take the numerical data from the dataset
+X_final = credit[['Income', 'Limit', 'Rating', 'Cards', 'Age']].copy()
+
+#define y as being the "Balance column" from the original dataset - what we want to predict
+y_final = credit[['Balance']].copy()
+```
+
+
+```{python Test train split}
+#Test train split
+X_train, X_test, y_train, y_test = train_test_split(X_final, y_final, test_size = 0.33, random_state = 0 )
+```
+
+
+
+```{python Standardize numeric variables so they are on the same scale}
+#standard scaler (fit transform on train, fit only on test)
+s_scaler = StandardScaler()
+X_train = s_scaler.fit_transform(X_train.astype(np.float))
+X_test= s_scaler.transform(X_test.astype(np.float))
+
+```
+
+
+We want to predict credit card balance as a function of income, limit, rating, cards, age and education.
+
+```{python Model fit}
+#Create instance and call model fit
+model = LinearRegression().fit(X_train,y_train)
+
+#Make predictions
+y_train_pred = model.predict(X_train)
+y_test_pred = model.predict(X_test)
+```
+
+
+```{python Goodness of fit measures}
+#print scores
+print("model.coef_: {}".format(model.coef_))
+print("model.intercept_: {}".format(model.intercept_))
+print('model train score %.3f, model test score: %.3f' % (
+model.score(X_train,y_train),
+model.score(X_test, y_test)))
+```
+
+
