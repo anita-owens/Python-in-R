@@ -38,9 +38,11 @@ py_install(c("pandas", "numpy", "matplotlib", "seaborn", "scikit-learn"))
 
 
 
-```{python Import python packages related to working directory}
-#import python packages
+```{python Working directory}
+#import python os
 from os import chdir, getcwd
+
+#Change working directory of needed
 wd=getcwd()
 chdir(wd)
 
@@ -77,6 +79,10 @@ print(credit.head(5))
 # Check column data types and non-missing values
 print(credit.info())
 ```
+```{python Print just the column names}
+print(credit.columns)
+```
+
 
 
 ## 4. Data Exploration
@@ -121,6 +127,18 @@ sns.boxplot(data=credit, x = 'Ethnicity',y = 'Balance', ax=ax[1,1])
 
 plt.show()
 ```
+```{python Data Visualization - part 4}
+sns.catplot(data=credit, x="Cards", y="Balance", hue="Gender", kind="box")
+plt.show()
+plt.clf()
+
+sns.catplot(data=credit, x="Cards", y="Balance", hue="Student", kind="box")
+plt.show()
+plt.clf()
+
+sns.lmplot(data = credit, x="Income", y="Balance", hue="Student")
+plt.show()
+```
 
 
 
@@ -130,37 +148,66 @@ sns.pairplot(credit)
 
 plt.show()
 ```
-## 5. Data model
+## 5. Data model - Linear Regression
 
 
-```{python Prepare numeric data for modeling}
-##take the numerical data from the dataset
-X_final = credit[['Income', 'Limit', 'Rating', 'Cards', 'Age']].copy()
+```{python Prep data for modeling}
+#Store column names for objects
+categorical = credit.nunique()[credit.nunique() < 5].keys().tolist()
 
-#define y as being the "Balance column" from the original dataset - what we want to predict
-y_final = credit[['Balance']].copy()
+# Perform one-hot encoding to categorical variables 
+credit_encoded = pd.get_dummies(data = credit, columns = categorical, drop_first=True)
+
+# Store numerical column names
+numerical = [x for x in credit.columns if x not in categorical]
 ```
 
 
-```{python Test train split}
-#Test train split
-X_train, X_test, y_train, y_test = train_test_split(X_final, y_final, test_size = 0.33, random_state = 0 )
+
+
+```{python Scale numeric data}
+# Initialize StandardScaler instance
+scaler = StandardScaler()
+
+# Fit and transform the scaler on numerical columns
+scaled_numerical = scaler.fit_transform(credit[numerical])
+
+# Build a DataFrame from scaled_numerical
+scaled_numerical = pd.DataFrame(scaled_numerical, columns=numerical)
+```
+
+```{python Create final dataset}
+#Drop non-scaled numerical columns
+credit_encoded  = credit_encoded.drop(columns = numerical, axis = 1)
+
+#merge the non-numerical with the scaled numerical data
+credit_final = credit_encoded.merge(right=scaled_numerical,
+                        how='left',
+                        left_index=True, #left join equivalent in SQL
+                        right_index = True)
+ 
+#Check results                        
+print(credit_final.columns)                      
 ```
 
 
 
-```{python Standardize numeric variables so they are on the same scale}
-#standard scaler (fit transform on train, fit only on test)
-s_scaler = StandardScaler()
-X_train = s_scaler.fit_transform(X_train.astype(np.float))
-X_test= s_scaler.transform(X_test.astype(np.float))
+```{python Create X and Y dataframes}
+X = credit_final[['Gender_Male', 'Student_Yes', 'Married_Yes', 'Ethnicity_Asian', 'Ethnicity_Caucasian', 'Income', 'Limit', 'Rating', 'Cards', 'Age', 'Education']].copy()
 
+Y = credit_final[['Balance']].copy()
+```
+
+```{python Test Train split}
+# Split X and Y into training and testing datasets
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.25)
 ```
 
 
-We want to predict credit card balance as a function of income, limit, rating, cards, age and education.
 
-```{python Model fit}
+We want to predict credit card balance as a function of our independent variables.
+
+```{python Model fit - Linear Regression}
 #Create instance and call model fit
 model = LinearRegression().fit(X_train,y_train)
 
