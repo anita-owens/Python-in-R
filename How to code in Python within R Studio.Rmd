@@ -152,6 +152,7 @@ plt.show()
 plt.close('all')
 
 #Plot pairwise relationships
+#We won't plot everything, just a few variables
 sns.pairplot(credit, vars = ['Income', 'Limit', 'Rating', 'Cards'], hue='Student')
 
 plt.show()
@@ -160,7 +161,7 @@ plt.show()
 
 
 ```{python Prep data for modeling}
-#Store column names for objects
+#Store categorical column names
 categorical = credit.nunique()[credit.nunique() < 5].keys().tolist()
 
 # Perform one-hot encoding on categorical variables only
