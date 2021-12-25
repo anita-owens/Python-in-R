@@ -16,22 +16,21 @@ pacman::p_load(pacman,
 reticulate)
 ```
 
-
 ```{r Python Environment check}
 #Check Anaconda environments
-conda_list()[[1]]
+conda_list()
 ```
 ```{r Declare environment}
 #Declare environment that you want to use
 use_condaenv("anaconda3")
 ```
 
-## 2.Install Packages
+## 2. Install Packages
 
 https://rstudio.github.io/reticulate/reference/py_install.html
 
 ```{r Install Packages}
-#use py_install to install packages needed
+#use py_install to install Python packages
 py_install(c("pandas", "numpy", "matplotlib", "seaborn", "scikit-learn"))
 ```
 
@@ -151,12 +150,23 @@ plt.show()
 ```{python Data Visualization - part 5 - Pairplot}
 plt.close('all')
 
-#Plot pairwise relationships
+#Plot pairwise relationships 
 #We won't plot everything, just a few variables
 sns.pairplot(credit, vars = ['Income', 'Limit', 'Rating', 'Cards'], hue='Student')
 
 plt.show()
 ```
+```{python Data Visualization - part 6 - Correlation plot}
+#to find if there are relationships between variables.
+
+plt.close('all')
+
+matrix = credit.corr().round(2)
+sns.heatmap(matrix, annot=True)
+plt.show()
+```
+
+
 ## 5. Data model - Linear Regression
 
 
@@ -170,8 +180,6 @@ credit_encoded = pd.get_dummies(data = credit, columns = categorical, drop_first
 # Store numerical column names
 numerical = [x for x in credit.columns if x not in categorical]
 ```
-
-
 
 
 ```{python Scale numeric data}
@@ -228,7 +236,7 @@ y_test_pred = model.predict(X_test)
 ```
 
 
-```{python Goodness of fit measures}
+```{python Goodness of fit measures for linear regression model}
 #print scores
 print("model.coef_: {}".format(model.coef_))
 print("model.intercept_: {}".format(model.intercept_))
@@ -236,7 +244,7 @@ print('model train score %.3f, model test score: %.3f' % (
 model.score(X_train,y_train),
 model.score(X_test, y_test)))
 ```
-Our regression model can explain about 96% percentage of variation or changes in balance.
+Our regression model can explain about 95% percentage of variation or changes in balance.
 
 
 
