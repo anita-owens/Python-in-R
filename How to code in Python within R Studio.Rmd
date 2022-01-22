@@ -217,6 +217,8 @@ X = credit_final[['Gender_Male', 'Student_Yes', 'Married_Yes', 'Ethnicity_Asian'
 Y = credit_final[['Balance']].copy()
 ```
 
+Split data into test and train set
+
 ```{python Test Train split}
 # Split X and Y into training and testing sets (80/20 split)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.20)
